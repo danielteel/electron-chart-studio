@@ -42,7 +42,6 @@ class ChartStudioWindow extends BrowserWindow{
        
         this.loadURL('file://'+path.join(__dirname, './src/index.html'));
         this.once('ready-to-show', () => {
-            this.setTitleBarOverlay({color:'#666666'});
             this.show();
         });
     }
