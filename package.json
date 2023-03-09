@@ -2,7 +2,7 @@
   "name": "electron-chart-studio",
   "version": "1.0.0",
   "description": "Chart Studio",
-  "main": "main.js",
+  "main": "main/main.js",
   "scripts": {
     "start": "webpack --config webpack.common.js && concurrently -k \"electron .\" \"webpack  --config webpack.common.js  --watch\" ",
     "buildreact": "webpack  --config webpack.common.js  --no-devtool  --mode production"

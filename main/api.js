@@ -1,6 +1,5 @@
 const { ipcMain, dialog, BrowserWindow } = require('electron');
 const fs  = require('fs/promises');
-const fsSync = require('fs');
 
 function getBrowser(event){
     return BrowserWindow.fromWebContents(event.sender);
@@ -12,18 +11,27 @@ function getBrowser(event){
 
 ipcMain.handle('dialog:showOpenDialogModal', async (event, options)=>{
     try {
-        return dialog.showOpenDialogSync(getBrowser(event), options)
+        return dialog.showOpenDialog(getBrowser(event), options)
     }catch (e){
         console.error('error in dialog:showOpenDialogModal', e);
         return undefined;
     }
 });
 
-ipcMain.handle('dialog:showSaveDialogModal', async (event, options)=>{
+ipcMain.handle('dialog:showOpenDialogModalSync', async (event, options)=>{
+    try {
+        return dialog.showOpenDialogSync(getBrowser(event), options)
+    }catch (e){
+        console.error('error in dialog:showOpenDialogModalSync', e);
+        return undefined;
+    }
+});
+
+ipcMain.handle('dialog:showSaveDialogModalSync', async (event, options)=>{
     try {
         return dialog.showSaveDialogSync(getBrowser(event),options)
     }catch (e){
-        console.error('error in dialog:showSaveDialogModal', e);
+        console.error('error in dialog:showSaveDialogModalSync', e);
         return undefined;
     }
 });
@@ -34,15 +42,13 @@ ipcMain.handle('dialog:showSaveDialogModal', async (event, options)=>{
 const openFiles = new Map();
 let openFilesCount = 0;
 
-ipcMain.handle('fs:readFileSync', async (event, file, encoding=null)=>{
+ipcMain.handle('fs:readFile', async (event, file, options)=>{
     try {
-        const data = fsSync.readFileSync(file, encoding);
-        console.log(data.length);
-        return data;
-    } catch (e) {
-        return undefined;
+        return fs.readFile(file, options);
+    }catch (e){
+        console.error(e);
     }
-})
+});
 
 ipcMain.handle('fs:open', async (event, file, flags) => {
     try {

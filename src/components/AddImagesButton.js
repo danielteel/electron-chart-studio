@@ -1,8 +1,6 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
-import CheckIcon from '@mui/icons-material/Check';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
+import LinearProgress from '@mui/material/LinearProgress';
 
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -10,10 +8,8 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import { Typography } from '@mui/material';
+import { Card, CardActionArea, CardContent, Typography } from '@mui/material';
+import { Box, Container, textAlign } from '@mui/system';
 
 
 const imagesFilter = [{ name: 'Images', extensions: ['apng', 'avif', 'gif', 'jpg', 'jpeg', 'jfif', 'pjpeg', 'pjp', 'png', 'svg', 'webp', 'bmp', 'ico'] }];
@@ -23,60 +19,39 @@ function fileName(path) {
     return path.substr(start, path.lastIndexOf('.')-start);
 }
 
-const handleAddImages = async ({setAddedImageList, onImageLoaded}) => {
+const handleAddImages = async ({setNumberOfImagesBeingLoaded, setImagesLoaded, onImageLoaded}) => {
     try {
-        const filePaths = await window.api.dialog.showOpenDialogModal({properties: ['openFile', 'multiSelections'], filters: imagesFilter});
+        const {filePaths, canceled} = await window.api.dialog.showOpenDialogModal({properties: ['openFile', 'multiSelections'], filters: imagesFilter});
 
-        if (filePaths) {
+        if (filePaths && !canceled) {
             const newFileList = filePaths.map( filePath => {
                 return {filePath: filePath, fileName: fileName(filePath), image: null, error: false};
             })
 
-            setAddedImageList(newFileList);
-    
+            const numberOfImagesToLoad=filePaths.length;
+
+            setNumberOfImagesBeingLoaded( current => current+numberOfImagesToLoad);
+
             for (const file of newFileList) {
-                window.api.readFile(file.filePath).then(imageBuffer => {
+                try {
+                    const imageBuffer = await window.api.fs.readFile(file.filePath);
+
                     const blob = new Blob([imageBuffer], {type: 'image/png'});
-    
+
                     const url = URL.createObjectURL(blob);
                     const img = new Image();
                     img.src = url;
 
                     img.onload = () => {
                         onImageLoaded(file.fileName, img);
-
-                        setAddedImageList( (current) => {
-                            const thisItem = current.find(item => item.filePath === file.filePath);
-                            if (!thisItem) return current;
-
-                            thisItem.image=img;
-                            const newList = current.filter(item => item.filePath !== file.filePath);
-                            newList.push(thisItem);
-                            return newList;
-                        });
+                        setImagesLoaded( current => current+1);
                     }
                     img.onerror = () => {
-                        setAddedImageList( (current) => {
-                            const thisItem = current.find(item => item.filePath === file.filePath);
-                            if (!thisItem) return current;
-
-                            thisItem.error = true;
-                            const newList = current.filter(item => item.filePath !== file.filePath);
-                            newList.unshift(thisItem);
-                            return newList;
-                        });
+                        setImagesLoaded( current => current+1);
                     }
-                }).catch(error => {
-                    setAddedImageList( (current) => {
-                        const thisItem = current.find(item => item.filePath === file.filePath);
-                        if (!thisItem) return current;
-
-                        thisItem.error = true;
-                        const newList = current.filter(item => item.filePath !== file.filePath);
-                        newList.unshift(thisItem);
-                        return newList;
-                    });
-                });
+                } catch (e){
+                    setImagesLoaded( current => current+1);
+                };
             }
         }
     } catch (e) {
@@ -87,70 +62,60 @@ const handleAddImages = async ({setAddedImageList, onImageLoaded}) => {
 
 export default function AddImagesButton({addImage}){
     const [isOpen, setIsOpen] = useState(false);
-    const [addedImageList, setAddedImageList] = useState([]);
+    const [numberOfImagesBeingLoaded, setNumberOfImagesBeingLoaded] = useState(0);
+    const [imagesLoaded, setImagesLoaded] = useState(0);
+
+    useEffect( () => {
+        if (imagesLoaded!==0 && numberOfImagesBeingLoaded!==0){
+            if (imagesLoaded===numberOfImagesBeingLoaded){
+                setImagesLoaded(0);
+                setNumberOfImagesBeingLoaded(0);
+            }
+        }
+    }, [imagesLoaded, numberOfImagesBeingLoaded]);
 
     const onImageLoaded = (imageName, image) => {
         addImage(imageName, image);
     }
 
-    let allImagesProcessed = true;
-    let errorLoadingImage = 0;
 
-    const listItems = addedImageList?.map(file => {
-        if (file.error) errorLoadingImage++;
-        if (!file.error && !file.image) allImagesProcessed=false;
-        return (
-            <ListItem>
-                <ListItemIcon>
-                    {
-                        file.error?
-                            <ErrorOutlineIcon/>
-                        :!file.image?
-                            <HourglassBottomIcon/>
-                        :
-                            <CheckIcon/>
-                    }
-                </ListItemIcon>
-                {file.fileName}
-            </ListItem>
-        );
-    });
+    useEffect( () => {
 
-    if (addedImageList?.length===0){
-        allImagesProcessed=false;
-        errorLoadingImage=0;
-    }
+    }, []);
 
     return <>
-    <button type='button' onClick={ () => {
-        setIsOpen(true);
-        setAddedImageList((current)=>{
-            return current.filter( item => !(item.error||item.image) );
-        });
-        handleAddImages({setAddedImageList, onImageLoaded});
-    }}>Add Image(s)</button>
-    <Dialog open={isOpen} onClose={()=>setIsOpen(false)}>
-        <DialogTitle>
-          Adding Images...
-        </DialogTitle>
-        <DialogContent>
-          <List>
-            {listItems}
-          </List>
-        </DialogContent>
-        <DialogActions>
-            <Typography variant='h6'>
+        <Button onClick={ () => {
+            setIsOpen(true);
+        }}>Add Image(s)</Button>
+
+        <Dialog open={isOpen} onClose={()=>setIsOpen(false)} fullWidth>
+            <DialogTitle>
+                Add images
+            </DialogTitle>
+            <DialogContent>
+                <Card sx={{borderStyle:'dashed', boxShadow:'none'}}>
+                    <CardActionArea onClick={() => handleAddImages({setNumberOfImagesBeingLoaded, setImagesLoaded, onImageLoaded})}
+                     sx={{minHeight: '200px', display:'flex', alignItems:'center', justifyItems:'center'}}>
+                            <CardContent>
+                                    <Typography variant="h5">Drag files or click here to add</Typography>
+                            </CardContent>
+                    </CardActionArea>
+                </Card>
                 {
-                errorLoadingImage && allImagesProcessed?
-                    Number(errorLoadingImage)+" image(s) failed to load, all the other images were loaded just fine."
-                :allImagesProcessed?
-                    "All images have been loaded."
-                :
-                    null
+                    numberOfImagesBeingLoaded ?
+                        <>
+                            <Box>
+                                <Typography variant="body2" color="text.secondary">Loading images {imagesLoaded}/{numberOfImagesBeingLoaded}</Typography>
+                            </Box>
+                            <LinearProgress variant="determinate" value={imagesLoaded/numberOfImagesBeingLoaded*100}/>
+                        </>
+                    :
+                        null
                 }
-            </Typography>
-            <Button onClick={()=>setIsOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={()=>setIsOpen(false)}>Close</Button>
+            </DialogActions>
+        </Dialog>
     </>
 }

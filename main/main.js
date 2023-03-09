@@ -1,5 +1,4 @@
-const {app, BrowserWindow, ipcMain} = require('electron');
-const fs  = require('fs/promises');
+const {app, BrowserWindow} = require('electron');
 const path = require('path');
 
 
@@ -40,7 +39,7 @@ class ChartStudioWindow extends BrowserWindow{
     constructor(...args){
         super(...args);
        
-        this.loadURL('file://'+path.join(__dirname, './src/index.html'));
+        this.loadURL('file://'+path.join(__dirname, '../src/index.html'));
         this.once('ready-to-show', () => {
             this.show();
         });
