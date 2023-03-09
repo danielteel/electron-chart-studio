@@ -103,6 +103,9 @@ export default class Canvas extends React.Component {
 
 
     mouseDown = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
         const xy=this.screenToChart({x: e.offsetX, y: e.offsetY});
         if (this.pointerId) {
             e.target.releasePointerCapture(this.pointerId);
