@@ -3,10 +3,7 @@ import React, { useState } from 'react';
 import Canvas from './Canvas';
 import AddImagesButton from './AddImagesButton';
 
-let buttonInUse = false;
-
-
-export default function App({}){
+export default function App(){
     const [images, setImages] = useState([]);
     return (
         <>
