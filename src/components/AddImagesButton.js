@@ -9,7 +9,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 
 import { Card, CardActionArea, CardContent, Typography } from '@mui/material';
-import { Box, Container, textAlign } from '@mui/system';
+import { Box } from '@mui/system';
 
 
 const imagesFilter = [{ name: 'Images', extensions: ['apng', 'avif', 'gif', 'jpg', 'jpeg', 'jfif', 'pjpeg', 'pjp', 'png', 'svg', 'webp', 'bmp', 'ico'] }];
@@ -19,43 +19,42 @@ function fileName(path) {
     return path.substr(start, path.lastIndexOf('.')-start);
 }
 
-const handleAddImages = async ({setNumberOfImagesBeingLoaded, setImagesLoaded, onImageLoaded}) => {
+const handleAddImagesDialog = async({setNumberOfImagesBeingLoaded, setImagesLoaded, onImageLoaded}) => {
     try {
         const {filePaths, canceled} = await window.api.dialog.showOpenDialogModal({properties: ['openFile', 'multiSelections'], filters: imagesFilter});
-
-        if (filePaths && !canceled) {
-            const newFileList = filePaths.map( filePath => {
-                return {filePath: filePath, fileName: fileName(filePath), image: null, error: false};
-            })
-
-            const numberOfImagesToLoad=filePaths.length;
-
-            setNumberOfImagesBeingLoaded( current => current+numberOfImagesToLoad);
-
-            for (const file of newFileList) {
-                try {
-                    const imageBuffer = await window.api.fs.readFile(file.filePath);
-
-                    const blob = new Blob([imageBuffer], {type: 'image/png'});
-
-                    const url = URL.createObjectURL(blob);
-                    const img = new Image();
-                    img.src = url;
-
-                    img.onload = () => {
-                        onImageLoaded(file.fileName, img);
-                        setImagesLoaded( current => current+1);
-                    }
-                    img.onerror = () => {
-                        setImagesLoaded( current => current+1);
-                    }
-                } catch (e){
-                    setImagesLoaded( current => current+1);
-                };
-            }
-        }
+        if (filePaths && !canceled) await handleAddImages({setNumberOfImagesBeingLoaded, setImagesLoaded, onImageLoaded, filePaths})
     } catch (e) {
-        console.error('error with open dialog', e);
+        console.error("handleAddImagesDialog", e);
+    }
+}
+
+const handleAddImages = async ({setNumberOfImagesBeingLoaded, setImagesLoaded, onImageLoaded, filePaths}) => {
+    if (filePaths) {
+        const numberOfImagesToLoad = filePaths.length;
+
+        setNumberOfImagesBeingLoaded( current => current + numberOfImagesToLoad);
+
+        for (const file of filePaths) {
+            try {
+                const imageBuffer = await window.api.fs.readFile(file);
+
+                const blob = new Blob([imageBuffer], {type: 'image/png'});
+
+                const url = URL.createObjectURL(blob);
+                const img = new Image();
+                img.src = url;
+
+                img.onload = () => {
+                    onImageLoaded(fileName(file), img);
+                    setImagesLoaded( current => current + 1);
+                }
+                img.onerror = () => {
+                    setImagesLoaded( current => current + 1);
+                }
+            } catch (e){
+                setImagesLoaded( current => current + 1);
+            };
+        }
     }
 }
 
@@ -78,10 +77,16 @@ export default function AddImagesButton({addImage}){
         addImage(imageName, image);
     }
 
-
-    useEffect( () => {
-
-    }, []);
+    const OnDragOver=(e)=>{
+        e.preventDefault();
+    }
+    const onDrop=(e)=>{
+        e.preventDefault();
+        if (e.dataTransfer.items) {
+            const filePaths = [...e.dataTransfer.items].filter( item => item.kind==='file').map( item => item.getAsFile().path );
+            handleAddImages({setNumberOfImagesBeingLoaded, setImagesLoaded, onImageLoaded, filePaths})
+        }
+    }
 
     return <>
         <Button onClick={ () => {
@@ -93,8 +98,8 @@ export default function AddImagesButton({addImage}){
                 Add images
             </DialogTitle>
             <DialogContent>
-                <Card sx={{borderStyle:'dashed', boxShadow:'none'}}>
-                    <CardActionArea onClick={() => handleAddImages({setNumberOfImagesBeingLoaded, setImagesLoaded, onImageLoaded})}
+                <Card sx={{borderStyle:'dashed', boxShadow:'none'}} onDragOver={OnDragOver} onDrop={onDrop}>
+                    <CardActionArea onClick={() => handleAddImagesDialog({setNumberOfImagesBeingLoaded, setImagesLoaded, onImageLoaded})}
                      sx={{minHeight: '200px', display:'flex', alignItems:'center', justifyItems:'center'}}>
                             <CardContent>
                                     <Typography variant="h5">Drag files or click here to add</Typography>
