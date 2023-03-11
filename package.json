@@ -4,7 +4,7 @@
   "description": "Chart Studio",
   "main": "main/main.js",
   "scripts": {
-    "start": "webpack --config webpack.common.js && concurrently -k \"electron .\" \"webpack  --config webpack.common.js  --watch\" ",
+    "start": "webpack --config webpack.common.js && concurrently -k \"electron . --js-flags=\"--expose-gc\"\" \"webpack  --config webpack.common.js  --watch\" ",
     "buildreact": "webpack  --config webpack.common.js  --no-devtool  --mode production"
   },
   "author": "Dan Teel <danjteel@gmail.com>",
