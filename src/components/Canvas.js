@@ -27,8 +27,8 @@ export default class Canvas extends React.Component {
             const ctx = this.canvasRef.current.getContext('2d');
             
             const scale = window.devicePixelRatio*1;
-            this.canvasRef.current.width=this.canvasRef.current.parentElement.offsetWidth*scale;
-            this.canvasRef.current.height=this.canvasRef.current.parentElement.offsetHeight*scale;
+            this.canvasRef.current.width=Number(this.canvasRef.current.style.width.substr(0, this.canvasRef.current.style.width.indexOf('p')))*scale;
+            this.canvasRef.current.height=Number(this.canvasRef.current.style.height.substr(0, this.canvasRef.current.style.height.indexOf('p')))*scale;
 
 
             ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -120,30 +120,32 @@ export default class Canvas extends React.Component {
         if (e.button===0){
             this.leftButtonDown(xy);
             this.leftDown=true;
-        }else if (e.button===1){
+        }else if (e.button===2){
             this.view.translateAnchor=xy;
             this.middleDown=true;
-        }else if (e.button===2){
+        }else if (e.button===1){
             this.rightButtonDown(xy);
             this.rightDown=true;
         }
         this.redraw();
     }
     mouseUp = (e) => {
+        e.preventDefault();
         const xy=this.screenToChart({x: e.offsetX, y: e.offsetY});
         e.target.releasePointerCapture(e.pointerId);
         this.pointerId=null;
         if (e.button===0){
             this.leftDown=false;
-        }else if (e.button===1){
-            this.middleDown=false;
         }else if (e.button===2){
+            this.middleDown=false;
+        }else if (e.button===1){
             this.rightDown=false;
         }
         this.redraw();
 
     }
     mouseMove = (e) => {
+        e.preventDefault();
         const xy={x: e.offsetX, y: e.offsetY};
         
         this.lastMouseScreenPos=xy;
@@ -195,9 +197,7 @@ export default class Canvas extends React.Component {
 
     render = () => {
         return (
-            //<div className="noselect" width={this.props.width} height={this.props.height} style={{overflow:"hidden", touchAction: "none"}}>
-                <canvas ref={this.canvasRef} className="noselect" style={{touchAction: "none", userSelect: "none", width: '100%', height:'100%'}} width={this.props.width} height={this.props.height} tabIndex={0}></canvas>
-            //</div>
+            <canvas ref={this.canvasRef} className="noselect" style={{touchAction: "none", userSelect: "none", width: this.props.width, height: this.props.height}} width={100} height={100} tabIndex={0}></canvas>
         );
     }
 }

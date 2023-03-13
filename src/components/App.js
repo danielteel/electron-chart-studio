@@ -100,7 +100,7 @@ export default function App(){
     }
 
     return (
-        <div ref={appRef} style={{display: 'flex'}}>
+        <div ref={appRef} style={{display: 'flex', width:'100%'}}>
             <ImagesPane images={project.images} addImage={addImage} removeImage={removeImage} selectedImage={project.selectedImage} setSelectedImage={setSelectedImage}/>
             <Canvas width={width-600} height={height} backgroundColor='white' draw={ (ctx, drawFns) => {
                 if (project.selectedImage){
