@@ -16,37 +16,41 @@ const imagesFilter = [{ name: 'Images', extensions: ['apng', 'avif', 'gif', 'jpg
 
 
 
-const handleAddImagesDialog = async({setNumberOfImagesBeingLoaded, setImagesLoaded, tryToAddImage}) => {
+const handleAddImagesDialog = async({setNumberOfImagesBeingLoaded, setImagesLoaded, addImage}) => {
     try {
         const {filePaths, canceled} = await window.api.dialog.showOpenDialogModal({properties: ['openFile', 'multiSelections'], filters: imagesFilter});
-        if (filePaths && !canceled) await handleAddImages({setNumberOfImagesBeingLoaded, setImagesLoaded, tryToAddImage, filePaths})
+        if (filePaths && !canceled) await handleAddImages({setNumberOfImagesBeingLoaded, setImagesLoaded, addImage, filePaths})
     } catch (e) {
         console.error("handleAddImagesDialog", e);
     }
 }
 
-const handleAddImages = async ({setNumberOfImagesBeingLoaded, setImagesLoaded, tryToAddImage, filePaths}) => {
+const handleAddImages = async ({setNumberOfImagesBeingLoaded, setImagesLoaded, addImage, filePaths}) => {
     if (filePaths) {
         const numberOfImagesToLoad = filePaths.length;
 
         setNumberOfImagesBeingLoaded( current => current + numberOfImagesToLoad);
 
         for (const file of filePaths) {
-            tryToAddImage(file).then( ()=>{
-                setImagesLoaded( current => current + 1);
+            addImage(file).then( (imageName) => {
+                if (imageName){
+                    setImagesLoaded( current => current +1 );
+                }else{
+                    setNumberOfImagesBeingLoaded( current => current - 1);
+                }
             });
         }
     }
 }
 
 
-export default function AddImagesButton({tryToAddImage}){
+export default function AddImagesButton({addImage}){
     const [isOpen, setIsOpen] = useState(false);
     const [numberOfImagesBeingLoaded, setNumberOfImagesBeingLoaded] = useState(0);
     const [imagesLoaded, setImagesLoaded] = useState(0);
 
     useEffect( () => {
-        if (imagesLoaded!==0 && numberOfImagesBeingLoaded!==0){
+        if ( (imagesLoaded!==0 && numberOfImagesBeingLoaded!==0)  || imagesLoaded>numberOfImagesBeingLoaded){
             if (imagesLoaded===numberOfImagesBeingLoaded){
                 setImagesLoaded(0);
                 setNumberOfImagesBeingLoaded(0);
@@ -61,7 +65,7 @@ export default function AddImagesButton({tryToAddImage}){
         e.preventDefault();
         if (e.dataTransfer.items) {
             const filePaths = [...e.dataTransfer.items].filter( item => item.kind==='file').map( item => item.getAsFile().path );
-            handleAddImages({setNumberOfImagesBeingLoaded, setImagesLoaded, tryToAddImage, filePaths})
+            handleAddImages({setNumberOfImagesBeingLoaded, setImagesLoaded, addImage, filePaths})
         }
     }
 
@@ -76,7 +80,7 @@ export default function AddImagesButton({tryToAddImage}){
             </DialogTitle>
             <DialogContent>
                 <Card sx={{borderStyle:'dashed', boxShadow:'none'}} onDragOver={OnDragOver} onDrop={onDrop}>
-                    <CardActionArea sx={{minHeight: '200px', display:'flex', alignItems:'center', justifyItems:'center'}} onClick={()=>handleAddImagesDialog({setNumberOfImagesBeingLoaded, setImagesLoaded, tryToAddImage})}>
+                    <CardActionArea sx={{minHeight: '200px', display:'flex', alignItems:'center', justifyItems:'center'}} onClick={()=>handleAddImagesDialog({setNumberOfImagesBeingLoaded, setImagesLoaded, addImage})}>
                             <CardContent>
                                     <Typography variant="h5">Drag files or click here to add</Typography>
                             </CardContent>
@@ -86,7 +90,7 @@ export default function AddImagesButton({tryToAddImage}){
                     numberOfImagesBeingLoaded ?
                         <>
                             <Box>
-                                <Typography variant="body2" color="text.secondary">Loading images {imagesLoaded}/{numberOfImagesBeingLoaded}</Typography>
+                                <Typography variant="body2" color="text.secondary">Loading files {imagesLoaded}/{numberOfImagesBeingLoaded}</Typography>
                             </Box>
                             <LinearProgress variant="determinate" value={imagesLoaded/numberOfImagesBeingLoaded*100}/>
                         </>

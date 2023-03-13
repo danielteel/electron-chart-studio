@@ -195,9 +195,9 @@ export default class Canvas extends React.Component {
 
     render = () => {
         return (
-            <div className="noselect" style={{overflow:"hidden", touchAction: "none"}}>
-                <canvas ref={this.canvasRef} className="noselect" style={{width: "100vw", height:"100vh", touchAction: "none", userSelect: "none"}} width="100" height="100" tabIndex={0}></canvas>
-            </div>
+            //<div className="noselect" width={this.props.width} height={this.props.height} style={{overflow:"hidden", touchAction: "none"}}>
+                <canvas ref={this.canvasRef} className="noselect" style={{touchAction: "none", userSelect: "none", width: '100%', height:'100%'}} width={this.props.width} height={this.props.height} tabIndex={0}></canvas>
+            //</div>
         );
     }
 }

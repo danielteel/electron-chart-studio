@@ -1,14 +1,11 @@
-import React, { useState, useReducer } from 'react';
+import React, { useState, useReducer, useRef } from 'react';
 
 import Canvas from './Canvas';
-import AddImagesButton from './AddImagesButton';
 import ImagesPane from './ImagesPane';
 
+import tryToLoadImage from '../functions/tryToLoadImage';
 
-function fileName(path) {
-    const start=Math.max(path.lastIndexOf('\\'), path.lastIndexOf('/'))+1;
-    return path.substr(start, path.lastIndexOf('.')-start);
-}
+import { useMeasure } from "@reactivers/use-measure";
 
 
 
@@ -17,13 +14,36 @@ function projectReducer(state, action){
     const payload = action.payload;
 
     switch (action.type){
-        case 'clear-images':{
-            for (const image of state.images){
-                image[1].cleanup();
-                state.images.delete(image[0]);
+        case 'select-image':{
+            if (state.images.has(payload)){
+                return {...state, selectedImage: payload};
             }
-            window.gc();
-            return {...state, images: new Map()};
+            return state;
+        }
+
+        case 'clear-images':{
+            const newImages = new Map(state.images);
+            for (const [key, image] of newImages){
+                image.cleanup();
+                newImages.delete(key);
+            }
+            if (typeof window.gc==='function') window.gc();//Try and reclaim memory if gc is exposed
+            return {...state, selectedImage: null, images: newImages};
+        }
+
+        case 'remove-image':{
+            const hasName = state.images.has(payload);
+            if (hasName){
+                const newImages = new Map(state.images);
+                newImages.get(payload).cleanup();
+                newImages.delete(payload);
+                let newSelectedImage = state.selectedImage;
+                if (hasName===state.selectedImage){
+                    newSelectedImage=null;
+                }
+                return {...state, selectedImage: newSelectedImage, images: newImages};
+            }
+            return state;
         }
                 
         case 'add-image':{
@@ -55,79 +75,39 @@ function projectReducer(state, action){
 
 const initialProjectState = {
     images: new Map(),
-    pages: []
+    selectedImage: null
 }
 
 export default function App(){
     const [project, _projectDispatch] = useReducer(projectReducer, initialProjectState)
     const projectDispatch = (type, payload) => _projectDispatch({type, payload});
 
+    const appRef = useRef();
+    const {width, height} = useMeasure({ref: appRef, updateOnWindowResize: true});
 
-    const tryToAddImage = async (file) => {
-        let imageUrl = null;
-        const cleanup = () => {
-            if (imageUrl){
-                console.log('revoked ', imageUrl);
-                URL.revokeObjectURL(imageUrl);
-                imageUrl=null;
-            }
-        };
-        try {
-            const name = fileName(file);
+    const addImage = (file) => {
+        return tryToLoadImage(project.images, file, (imageObj) => {
+            projectDispatch('add-image', imageObj); 
+        });
+    }
 
-            let imageBuffer = await window.api.fs.readFile(file);
-            const hash = window.api.crypto.hashFromBuffer(imageBuffer);
-            
-            const nameAlreadyExists = project.images.has(name);
-            if (nameAlreadyExists){
-                if (hash === project.images.get(name).hash){
-                    return false;
-                }
-            }
-            let blob = new Blob([imageBuffer]);
-            imageBuffer=null;
-            imageUrl = URL.createObjectURL(blob);
-            blob=null;
-            const img = new Image();
+    const removeImage = (imageName) => {
+        projectDispatch('remove-image', imageName);
+    }
 
-            const onImageLoadPromise = new Promise((resolve, reject) => {
-                img.onload = () => {
-                    img.onload=undefined;
-                    img.onerror=undefined;
-                    projectDispatch('add-image', {name, image: img, hash, cleanup}); 
-                    resolve(true);
-                }
-                img.onerror = () => {
-                    img.onload=undefined;
-                    img.onerror=undefined;
-                    cleanup();
-                    resolve(false);
-                }
-
-                img.src = imageUrl;
-            });
-            return await onImageLoadPromise;
-        } catch (e) {
-            cleanup();
-            return false;
-        }
-    };
+    const setSelectedImage = (imageName) => {
+        projectDispatch('select-image', imageName);
+    }
 
     return (
-        <>
-            <AddImagesButton tryToAddImage={tryToAddImage}/>
-            <button type='button' onClick={()=>{
-                projectDispatch('clear-images');
-            }}>Remove all images</button>
-            <ImagesPane images={project.images}/>
-
-            {/* <Canvas backgroundColor='white' draw={ (ctx, drawFns) => {
-                let drawX = 0;
-                for (const [key, image] of project.images){
-                    drawFns.drawImage(image.image, drawX, 0);
-                    drawX+=image.image.width;
+        <div ref={appRef} style={{display: 'flex'}}>
+            <ImagesPane images={project.images} addImage={addImage} removeImage={removeImage} selectedImage={project.selectedImage} setSelectedImage={setSelectedImage}/>
+            <Canvas width={width-600} height={height} backgroundColor='white' draw={ (ctx, drawFns) => {
+                if (project.selectedImage){
+                    drawFns.drawImage(project.images.get(project.selectedImage).image, 0, 0);
                 }
-            }}/> */}
-        </>
+            }}/>
+            <ImagesPane images={project.images} addImage={addImage} removeImage={removeImage} selectedImage={project.selectedImage} setSelectedImage={setSelectedImage}/>
+        </div>
     );
 }
