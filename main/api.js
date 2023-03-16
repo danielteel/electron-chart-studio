@@ -34,7 +34,7 @@ ipcMain.handle('dialog:showSaveDialogModal', async (event, options)=>{
 
 ipcMain.handle('fs:writeFileJSON', async (event, file, object) => {
     try {
-        await bfj.write(file, object, {yieldRate: 1638400})
+        await bfj.write(file, object)
         return true;
     } catch (e) {
         console.error(e);
@@ -44,7 +44,7 @@ ipcMain.handle('fs:writeFileJSON', async (event, file, object) => {
 
 ipcMain.handle('fs:readFileJSON', async (event, file) => {
     try {
-        return await bfj.read(file, {yieldRate: 1638400});
+        return await bfj.read(file);
     } catch (e) {
         console.error(e);
     }
