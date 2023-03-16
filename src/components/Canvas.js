@@ -12,11 +12,10 @@ export default class Canvas extends React.Component {
         this.rightDown=false;
         this.pointerId=null;
 
-        this.lastMouseScreenPos={x: 0, y: 0};
 
         this.view = {
             origin: {x: 0, y: 0},
-            zoomLevel: 4,
+            zoomLevel: 8,
             zoom: 1,
             translateAnchor:{x: 0, y: 0}
         }
@@ -24,6 +23,7 @@ export default class Canvas extends React.Component {
 
     redraw = () => {
         requestAnimationFrame( () => {
+            if (!this.canvasRef.current) return;
             const ctx = this.canvasRef.current.getContext('2d');
             
             const scale = window.devicePixelRatio*1;
@@ -91,10 +91,10 @@ export default class Canvas extends React.Component {
 
 
     leftButtonDown = ({x, y}) => {
-        this.props?.onLeftButtonDown({x,y});
+        this.props?.onLeftButtonDown?.({x,y});
     }
     rightButtonDown = ({x, y}) => {
-        this.props?.onRightButtonDown({x,y});
+        this.props?.onRightButtonDown?.({x,y});
     }
 
     componentDidUpdate = (prevProps) => {
@@ -120,10 +120,10 @@ export default class Canvas extends React.Component {
         if (e.button===0){
             this.leftButtonDown(xy);
             this.leftDown=true;
-        }else if (e.button===2){
+        }else if (e.button===1){
             this.view.translateAnchor=xy;
             this.middleDown=true;
-        }else if (e.button===1){
+        }else if (e.button===2){
             this.rightButtonDown(xy);
             this.rightDown=true;
         }
@@ -136,9 +136,9 @@ export default class Canvas extends React.Component {
         this.pointerId=null;
         if (e.button===0){
             this.leftDown=false;
-        }else if (e.button===2){
-            this.middleDown=false;
         }else if (e.button===1){
+            this.middleDown=false;
+        }else if (e.button===2){
             this.rightDown=false;
         }
         this.redraw();
@@ -147,17 +147,16 @@ export default class Canvas extends React.Component {
     mouseMove = (e) => {
         e.preventDefault();
         const xy={x: e.offsetX, y: e.offsetY};
-        
-        this.lastMouseScreenPos=xy;
+
 
         if (this.leftDown){
-             this.leftButtonDown(this.screenToChart(xy));
+             //this.leftButtonDown(this.screenToChart(xy));
         }
         if (this.middleDown){
             this.view.origin=this.screenToChart(xy, this.view.zoom, this.view.translateAnchor);
         } 
         if (this.rightDown){
-            this.rightButtonDown(this.screenToChart(xy));
+            //this.rightButtonDown(this.screenToChart(xy));
         }
         this.redraw();
     }
@@ -168,9 +167,14 @@ export default class Canvas extends React.Component {
             const oldOrigin = this.screenToChart(xy);
             this.view.zoomLevel-=e.deltaY/150;
             if (this.view.zoomLevel<1) this.view.zoomLevel=1;
-            this.view.zoom=(this.view.zoomLevel/4)**2;
+            this.view.zoom=(this.view.zoomLevel/8)**2;
             
-            this.view.origin=this.screenToChart(xy, this.view.zoom, oldOrigin);
+            if (this.middleDown){
+                this.view.origin=this.screenToChart(xy, this.view.zoom, this.view.translateAnchor);
+            }else{
+                this.view.origin=this.screenToChart(xy, this.view.zoom, oldOrigin);
+            }
+            
             this.redraw();
     }
 
@@ -197,7 +201,7 @@ export default class Canvas extends React.Component {
 
     render = () => {
         return (
-            <canvas ref={this.canvasRef} className="noselect" style={{touchAction: "none", userSelect: "none", width: this.props.width, height: this.props.height}} width={100} height={100} tabIndex={0}></canvas>
+            <canvas ref={this.canvasRef} className="noselect" style={{borderStyle:'solid', borderWidth: '1px', borderColor:'#444444', userSelect: "none", width: this.props.width, height: this.props.height}}></canvas>
         );
     }
 }

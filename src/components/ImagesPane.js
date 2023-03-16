@@ -142,10 +142,10 @@ export default function ImagesPane({images, addImage, removeImage, selectedImage
     }
 
     return (
-            <Box sx={{display: 'flex', flexDirection: 'column', maxHeight: '100%', width: '300px', borderStyle:isDragging?'dashed':null}} onDragOver={onDragOver} onDrop={onDrop} onDragLeave={onDragLeave}>
+            <Paper variant='outlined' sx={{display: 'flex', flexDirection: 'column', maxHeight: '100%', width: '280px', borderStyle:isDragging?'dashed':null}} onDragOver={onDragOver} onDrop={onDrop} onDragLeave={onDragLeave}>
                 <Box sx={{display: 'flex'}}>
                     <Typography variant='h6' sx={{flexGrow:1, textAlign:'center'}}>
-                        Images
+                        Pages
                     </Typography>
                     <IconButton children={<AddIcon/>} onClick={()=>{
                         handleAddImagesDialog({addImage, setShowLoading, loadingTimeout});
@@ -155,11 +155,11 @@ export default function ImagesPane({images, addImage, removeImage, selectedImage
                     }}/>
                 </Box>
                 {loadingAlert}
-                <Paper sx={{overflowY: 'auto', overflowX: 'hidden', flexGrow:1, display: 'flex', flexDirection:'column'}}>
+                <Box sx={{overflowY: 'auto', overflowX: 'hidden', flexGrow:1, display: 'flex', flexDirection:'column'}}>
                     <List dense sx={{flexGrow:1}}>
                         {list}
                     </List>
-                </Paper>
-            </Box>
+                </Box>
+            </Paper>
     );
 }
