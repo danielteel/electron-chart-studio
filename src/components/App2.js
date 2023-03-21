@@ -15,6 +15,10 @@ function fileName(path) {
 const imageLibrary = new ImageLibrary();
 
 
+function canAddImage(imagesMap, newImageName){
+    if (imagesMap.has(newImageName)) return false;
+    return true;
+}
 
 function projectReducer(state, action){
     const payload = action.payload;
@@ -54,7 +58,7 @@ function projectReducer(state, action){
         }
                 
         case 'add-image':{
-            if (state.images.has(payload.name)){
+            if (!canAddImage(state.images, payload.name)){
                 console.error('projectReducer: tried to add image with name of an existing image');
                 return state;
             }
@@ -85,12 +89,14 @@ export default function App(){
             throw new Error('must pass a string or an array of strings to addImage');
         }
         for (const file of filePaths){
-            imageLibrary.loadImage(file).then( imageObj =>{
-                const name = fileName(file);
-                projectDispatch('add-image', {name, image: imageObj});
-            }).catch( (e) => {
-                console.error(e);
-            });
+            const name = fileName(file);
+            if (canAddImage(project.images, name)){
+                imageLibrary.loadImage(file).then( imageObj =>{
+                    projectDispatch('add-image', {name, image: imageObj});
+                }).catch( (e) => {
+                    console.error(e);
+                });
+            }
         }
     }
 
