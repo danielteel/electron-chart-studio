@@ -15,7 +15,7 @@
     "@fontsource/roboto": "^4.5.5",
     "@mui/icons-material": "^5.11.11",
     "@mui/material": "^5.11.11",
-    "@reactivers/use-measure": "^1.0.0",
+    "@react-hook/resize-observer": "^1.2.6",
     "bfj": "^7.0.2",
     "react": "^18.1.0",
     "react-dom": "^18.1.0"

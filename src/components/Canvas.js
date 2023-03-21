@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
+
+import { useMeasure } from "@reactivers/use-measure";
 
 export default class Canvas extends React.Component {
     constructor(props){
@@ -11,6 +13,9 @@ export default class Canvas extends React.Component {
         this.middleDown=false;
         this.rightDown=false;
         this.pointerId=null;
+
+        this.width=0;
+        this.height=0;
 
 
         this.view = {
@@ -200,8 +205,16 @@ export default class Canvas extends React.Component {
     }
 
     render = () => {
+        const {width, height} = useMeasure({ref: this.canvasRef, updateOnWindowResize: true});
+
+        useEffect( () => {
+            this.setState({...this.state, width, height});
+        }, [width, height]);
+
         return (
-            <canvas ref={this.canvasRef} className="noselect" style={{borderStyle:'solid', borderWidth: '1px', borderColor:'#444444', userSelect: "none", width: this.props.width, height: this.props.height}}></canvas>
+            <div style={{flexGrow: 1}}>
+                <canvas ref={this.canvasRef} className="noselect" style={{borderStyle:'solid', borderWidth: '1px', borderColor:'#444444', userSelect: "none", width: '100%', height: '100%'}}></canvas>
+            </div>
         );
     }
 }

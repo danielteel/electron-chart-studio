@@ -7,6 +7,7 @@ import Canvas from './Canvas';
 import ImagesPane from './ImagesPane';
 
 import tryToLoadImage from '../functions/tryToLoadImage';
+import ImagesLibrary from '../functions/ImageLibrary';
 
 import { useMeasure } from "@reactivers/use-measure";
 import {saveProjectAs, loadProjectFrom} from '../functions/saveAndLoadProject';
@@ -104,6 +105,7 @@ export default function App(){
 
     const [savingOrLoading, setSavingOrLoading] = useState(null);
 
+
     const addImage = (file) => {
         return tryToLoadImage(project.images, file, (imageObj) => {
             projectDispatch('add-image', imageObj); 
@@ -120,7 +122,7 @@ export default function App(){
 
     const saveProject = async () => {
         let saveReturn = await window.api.dialog.showSaveDialogModal({title: 'Save project as...', filters: [{name: 'ChartStudio Project', extensions: ['csp']}]});
-        if (saveReturn.cancelled) return null;
+        if (saveReturn.canceled) return null;
 
         setSavingOrLoading({type: 'Saving', progress: 0});
         const filePath = saveReturn.filePath;
@@ -134,7 +136,7 @@ export default function App(){
 
     const openProject = async () => {
         let openReturn = await window.api.dialog.showOpenDialogModal({properties: ['openFile'], title: 'Open project', filters: [{name:'ChartStudio Project', extensions: ['csp']}]});
-        if (openReturn.cancelled) return null;
+        if (openReturn.canceled) return null;
         
         setSavingOrLoading({type: 'Loading', progress: 0});
         const filePath = openReturn.filePaths[0];
