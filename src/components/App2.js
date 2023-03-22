@@ -1,10 +1,10 @@
-import React, { useReducer, useRef } from 'react';
+import React, { useReducer, useRef, useState } from 'react';
 
 import Canvas2 from './Canvas2';
 import ImagesPane2 from './ImagesPane2';
 
 import ImageLibrary from '../functions/ImageLibrary';
-import { Button, Paper } from '@mui/material';
+import Loading from './Loading';
 
 function fileName(path) {
     const start=Math.max(path.lastIndexOf('\\'), path.lastIndexOf('/'))+1;
@@ -82,12 +82,15 @@ export default function App(){
     const [project, _projectDispatch] = useReducer(projectReducer, initialProjectState)
     const projectDispatch = (type, payload) => _projectDispatch({type, payload});
     const drawRef = useRef();
+    const [progressStatus, setProgressStatus] = useState(null);//{title: 'asdasd', value, max}
 
     const addImages = (filePaths) => {
         if (typeof filePaths==='string') filePaths=[filePaths];
         if (!Array.isArray(filePaths)){
             throw new Error('must pass a string or an array of strings to addImage');
         }
+
+        setProgressStatus({title: 'Loading images', value: 0, max: filePaths.length});
         for (const file of filePaths){
             const name = fileName(file);
             if (canAddImage(project.images, name)){
@@ -95,6 +98,13 @@ export default function App(){
                     projectDispatch('add-image', {name, image: imageObj});
                 }).catch( (e) => {
                     console.error(e);
+                }).finally(()=>{
+                    setProgressStatus( current => {
+                        if (current.value+1===filePaths.length){
+                            return null;
+                        }
+                        return {...current, value: current.value+1};
+                    });
                 });
             }
         }
@@ -122,21 +132,17 @@ export default function App(){
         ctx.fillStyle='#123123';
         ctx.strokeStyle='#FFFFFF';
         ctx.fillRect(0, 0, width,  height);
-        ctx.beginPath();
-        ctx.moveTo(2, 2);
-        ctx.lineTo(width-2, 1);
-        ctx.lineTo(width-2, height-2);
-        ctx.lineTo(2, height-2);
-        ctx.lineTo(2, 2);
-        ctx.stroke();
-        ctx.font = "48px menu";
-        ctx.fillStyle='#FFFFFF';
-        ctx.textAlign='right';
-        ctx.fillText("Hello world", width, 50);
+        if (project.images.get(project.selectedImage)){
+            ctx.drawImage(project.images.get(project.selectedImage).img, 0, 0);
+        }
     }
 
     const onCanvasResize = () => {
         redraw();
+    }
+
+    if (progressStatus){
+        return <Loading open={true} title={progressStatus.title} value={progressStatus.value} max={progressStatus.max}/>
     }
 
     return (
