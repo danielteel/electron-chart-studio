@@ -36,10 +36,10 @@ export default function ImagesPane({images, addImages, removeImage, selectedImag
     const [isDragging, setIsDragging] = useState(0);
 
 
-    let list=[];
+    const list=[];
     for (const [name, image] of images){
         list.push(
-            <ListItem key={name}>
+            <ListItem key={name} onKeyDown={(e)=>console.log(e)}>
                 <ListItemButton selected={name===selectedImage} onClick={()=>setSelectedImage(name)}>
                     <ListItemAvatar>
                         <Avatar variant='rounded' src={image.img.src} />
@@ -73,7 +73,7 @@ export default function ImagesPane({images, addImages, removeImage, selectedImag
             <Paper variant='outlined' sx={{display: 'flex', flexDirection: 'column', maxHeight: '100%', minWidth:'280px', width: '280px', borderStyle:isDragging?'dashed':null}} onDragOver={onDragOver} onDrop={onDrop} onDragLeave={onDragLeave}>
                 <Box sx={{display: 'flex'}}>
                     <Typography variant='h6' sx={{flexGrow:1, textAlign:'center'}}>
-                        Pages
+                        Images
                     </Typography>
                     <IconButton children={<AddIcon/>} onClick={()=>{
                         handleAddImagesDialog({addImages});

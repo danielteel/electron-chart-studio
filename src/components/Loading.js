@@ -9,14 +9,15 @@ import Stack from '@mui/system/Stack';
 import Box from '@mui/material/Box';
 
 
-export default function Loading({open, onClose, title, progress, message}){
+export default function Loading({open, onClose, progress, message}){
+    if (!progress) return null;
     let percent=progress.value/progress.max*100;
     if (isNaN(percent)) percent=100;
     return (
-        <Backdrop open={open}>
+        <Backdrop open={open} sx={{zIndex:10000}}>
             <Paper sx={{padding:'15px', minWidth:'300px'}}>
                 <Stack spacing='20px'>
-                    <Typography variant='h6' sx={{width:'100%', textAlign:'center'}}>{title}</Typography>
+                    <Typography variant='h6' sx={{width:'100%', textAlign:'center'}}>{progress.title}</Typography>
                     <Box sx={{display:'flex', alignItems:'center'}}>
                         <Box sx={{width:'100%', mr: 1}}>
                             <LinearProgress variant="determinate" value={percent}/>
