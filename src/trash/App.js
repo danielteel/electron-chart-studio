@@ -6,11 +6,11 @@ import LinearProgress from '@mui/material/LinearProgress';
 import Canvas from './Canvas';
 import ImagesPane from './ImagesPane';
 
-import tryToLoadImage from '../functions/tryToLoadImage';
-import ImagesLibrary from '../functions/ImageLibrary';
+import tryToLoadImage from '../lib/tryToLoadImage';
+import ImagesLibrary from '../lib/ImageLibrary';
 
 import { useMeasure } from "@reactivers/use-measure";
-import {saveProjectAs, loadProjectFrom} from '../functions/saveAndLoadProject';
+import {saveProjectAs, loadProjectFrom} from '../lib/saveAndLoadProject';
 import { Paper, Typography } from '@mui/material';
 
 

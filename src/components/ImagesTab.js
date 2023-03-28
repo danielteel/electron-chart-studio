@@ -1,7 +1,7 @@
 import React, {useState, useRef} from 'react';
 
 import Loading from './Loading';
-import Canvas from './Canvas';
+import Danvas from './Danvas';
 import ImagesPane from './ImagesPane';
 import Alert from '@mui/material/Alert';
 
@@ -62,13 +62,12 @@ export default function ImagesTab({project, projectDispatch, imageLibrary}){
 
         ctx.fillStyle='#123123';
         ctx.fillRect(0, 0, drawRef.current.width,  drawRef.current.height);
-        if (project.images.get(project.selectedImage)){
-            ctx.drawImage(project.images.get(project.selectedImage).img, 0, 0);
+        const image = project.images.get(project.selectedImage)?.img;
+        if (image){
+            const zoom = drawRef.current.zoom;
+            const origin = drawRef.current.origin;
+            ctx.drawImage(image, origin.x*zoom, origin.y*zoom, image.width*zoom, image.height*zoom);
         }
-    }
-
-    const onCanvasResize = () => {
-        redraw();
     }
 
     return (
@@ -79,7 +78,7 @@ export default function ImagesTab({project, projectDispatch, imageLibrary}){
             <div style={{display: 'flex', flexGrow: 1, overflow: 'hidden',  boxSizing:'border-box'}}>
                 <ImagesPane {...{images: project.images, selectedImage: project.selectedImage, addImages, removeImage, setSelectedImage, clearImages}}/>
                 <div style={{flexGrow: 1}}>
-                    <Canvas style={{width:'100%', height:'100%'}} drawRef={drawRef} onResize={onCanvasResize}/>
+                    <Danvas style={{width:'100%', height:'100%'}} drawRef={drawRef} onNeedsRedraw={redraw}/>
                 </div>
             </div>
         </>

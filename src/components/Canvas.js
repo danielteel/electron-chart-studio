@@ -1,19 +1,6 @@
 import React, { useEffect, useRef } from "react";
 
-import useResizeObserver from '@react-hook/resize-observer'
-
-
-const useSize = (target) => {
-    const [size, setSize] = React.useState()
-  
-    React.useLayoutEffect(() => {
-      setSize(target.current.getBoundingClientRect())
-    }, [target])
-  
-    useResizeObserver(target, (entry) => setSize(entry.contentRect))
-    return size
-}
-
+import useSize from "../lib/useSize";
 
 
 
@@ -25,7 +12,8 @@ export default function Canvas({onResize, drawRef, ...props}){
       drawRef.current = {
         getContext: (type)=>canvasRef.current?.getContext(type),
         width: size?.width*window.devicePixelRatio,
-        height: size?.height*window.devicePixelRatio
+        height: size?.height*window.devicePixelRatio,
+        canvas: canvasRef.current
       }
     }
 

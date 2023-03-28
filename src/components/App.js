@@ -1,7 +1,7 @@
 import React, { useReducer, useRef, useState } from 'react';
 
 
-import ImageLibrary from '../functions/ImageLibrary';
+import ImageLibrary from '../lib/ImageLibrary';
 import ImagesTab from './ImagesTab';
 
 
