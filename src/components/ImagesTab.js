@@ -66,7 +66,8 @@ export default function ImagesTab({project, projectDispatch, imageLibrary}){
         if (image){
             const zoom = drawRef.current.zoom;
             const origin = drawRef.current.origin;
-            ctx.drawImage(image, origin.x*zoom, origin.y*zoom, image.width*zoom, image.height*zoom);
+            const scale = drawRef.current.scale;
+            ctx.drawImage(image, origin.x*zoom*scale, origin.y*zoom*scale, image.width*zoom*scale, image.height*zoom*scale);
         }
     }
 
@@ -74,7 +75,7 @@ export default function ImagesTab({project, projectDispatch, imageLibrary}){
         <>
             <Loading open={progressStatus?true:false} progress={progressStatus} message={message} onClose={()=>{
                 setProgressStatus(null);
-            }}/>
+            }}/> 
             <div style={{display: 'flex', flexGrow: 1, overflow: 'hidden',  boxSizing:'border-box'}}>
                 <ImagesPane {...{images: project.images, selectedImage: project.selectedImage, addImages, removeImage, setSelectedImage, clearImages}}/>
                 <div style={{flexGrow: 1}}>

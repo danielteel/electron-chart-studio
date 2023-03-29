@@ -24,7 +24,8 @@ export default function Danvas({onNeedsRedraw, drawRef, ...props}) {
             height: size?.height * window.devicePixelRatio,
             canvas: canvasRef.current,
             zoom: zoom,
-            origin: origin
+            origin: origin,
+            scale: window.devicePixelRatio
         }
     }
 
@@ -38,7 +39,8 @@ export default function Danvas({onNeedsRedraw, drawRef, ...props}) {
             width: canvasRef.current.width,
             height: canvasRef.current.height,
             zoom: zoom,
-            origin: origin
+            origin: origin,
+            scale: window.devicePixelRatio
         })
     }, [size, onNeedsRedraw, drawRef, zoom, origin]);
 
@@ -46,25 +48,23 @@ export default function Danvas({onNeedsRedraw, drawRef, ...props}) {
         const canvas = canvasRef.current;
         const onWheel = (e) => {
             e.preventDefault();
-            setZoom(current => {
-                const mousePos = {x: e.offsetX, y: e.offsetY};
-                const canvasPos = screenToChart(mousePos, current, origin);
-    
-                let newZoom;
-                if (e.deltaY<0){
-                    newZoom=current*zoomFactor;
-                }else{
-                    newZoom=current/zoomFactor;
-                }
-                setOrigin(oldOrigin => (screenToChart(mousePos, newZoom, canvasPos)))
-                return newZoom;
-            });
+            const mousePos = {x: e.offsetX, y: e.offsetY};
+            const canvasPos = screenToChart(mousePos, zoom, origin);
+
+            let newZoom=zoom;
+            if (e.deltaY<0){
+                newZoom*=zoomFactor;
+            }else{
+                newZoom/=zoomFactor;
+            }
+            setOrigin(screenToChart(mousePos, newZoom, canvasPos));
+            setZoom(newZoom);
         }
         canvas.addEventListener('wheel', onWheel);
         return () => {
             canvas.removeEventListener('wheel', onWheel);
         }
-    }, [origin]);
+    }, [origin, zoom]);
 
     let style = {};
     if (props?.style) style = {...props.style};
