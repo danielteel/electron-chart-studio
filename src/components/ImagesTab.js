@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useCallback} from 'react';
 
 import Loading from './Loading';
 import Danvas from './Danvas';
@@ -57,19 +57,33 @@ export default function ImagesTab({project, projectDispatch, imageLibrary}){
         if (progressStatus.duplicates) message.push(<Alert severity='warning'>Failed to load {progressStatus.duplicates} file(s) due to duplicate name(s)</Alert>);
     }
 
-    const redraw = () => {
-        const ctx = drawRef.current.getContext('2d');
+    const redraw = useCallback((data) => {
+        const ctx = data.context;
 
         ctx.fillStyle='#123123';
-        ctx.fillRect(0, 0, drawRef.current.width,  drawRef.current.height);
+        ctx.fillRect(0, 0, data.width, data.height);
         const image = project.images.get(project.selectedImage)?.img;
         if (image){
-            const zoom = drawRef.current.zoom;
-            const origin = drawRef.current.origin;
-            const scale = drawRef.current.scale;
-            ctx.drawImage(image, origin.x*zoom*scale, origin.y*zoom*scale, image.width*zoom*scale, image.height*zoom*scale);
+            data.drawFunctions.drawImage(image, 0, 0);
         }
-    }
+        data.drawFunctions.setLineWidth(true, 10);
+        data.drawFunctions.setStrokeStyle('blue', 'square');
+        data.drawFunctions.beginPath();
+        data.drawFunctions.moveTo(0, 0);
+        data.drawFunctions.lineTo(image.width, image.height);
+        data.drawFunctions.stroke();
+
+        data.drawFunctions.beginPath();
+        data.drawFunctions.setLineWidth(false, 10);
+        data.drawFunctions.setStrokeStyle('red', 'butt');
+        data.drawFunctions.moveTo(image.width, 0);
+        data.drawFunctions.lineTo(0, image.height);
+        data.drawFunctions.stroke();
+
+        data.drawFunctions.setFillStyle('blue');
+        data.drawFunctions.setFont(true, 10, 'segoe');
+        data.drawFunctions.fillText('Hi', 10, 10);
+    }, [project.images, project.selectedImage]);
 
     return (
         <>
@@ -79,8 +93,9 @@ export default function ImagesTab({project, projectDispatch, imageLibrary}){
             <div style={{display: 'flex', flexGrow: 1, overflow: 'hidden',  boxSizing:'border-box'}}>
                 <ImagesPane {...{images: project.images, selectedImage: project.selectedImage, addImages, removeImage, setSelectedImage, clearImages}}/>
                 <div style={{flexGrow: 1}}>
-                    <Danvas style={{width:'100%', height:'100%'}} drawRef={drawRef} onNeedsRedraw={redraw}/>
+                    <Danvas style={{width:'100%', height:'100%'}} onNeedsRedraw={redraw} drawRef={drawRef}/>
                 </div>
+                <ImagesPane {...{images: project.images, selectedImage: project.selectedImage, addImages, removeImage, setSelectedImage, clearImages}}/>
             </div>
         </>
     );
