@@ -18,6 +18,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import LayersClearIcon from '@mui/icons-material/LayersClear';
 
 import GetNameDialog from './GetNameDialog';
+import { create } from '@mui/material/styles/createTransitions';
 
 
 export default function ChartsPane({charts, newChart, selectedChart, selectedImage}){
@@ -34,6 +35,11 @@ export default function ChartsPane({charts, newChart, selectedChart, selectedIma
         return null;
     }
 
+    const createChart = (name) => {
+        newChart(String(name).trim());
+        setGetNameDialogOpen(false);
+    }
+
     const list=[];
     for (const [name, chart] of charts){
         list.push(
@@ -48,7 +54,7 @@ export default function ChartsPane({charts, newChart, selectedChart, selectedIma
     }
     return (
         <>
-            <GetNameDialog open={getNameDialogOpen} onSubmit={(name)=>{newChart(name);setGetNameDialogOpen(false)}} onCancel={()=>setGetNameDialogOpen(false)} validate={checkName}/>
+            <GetNameDialog open={getNameDialogOpen} onSubmit={createChart} onCancel={()=>setGetNameDialogOpen(false)} validate={checkName}/>
             <Paper variant='outlined' sx={{display: 'flex', flexDirection: 'column', maxHeight: '100%', minWidth:'260px', width: '260px'}}>
                 <Box sx={{display: 'flex'}}>
                     <Typography variant='h6' sx={{flexGrow:1, textAlign:'center'}}>
