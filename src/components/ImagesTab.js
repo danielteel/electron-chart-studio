@@ -4,6 +4,7 @@ import Loading from './Loading';
 import Danvas from './Danvas';
 import ImagesPane from './ImagesPane';
 import Alert from '@mui/material/Alert';
+import ChartsPane from './ChartsPane';
 
 
 function fileName(path) {
@@ -50,6 +51,10 @@ export default function ImagesTab({project, projectDispatch, imageLibrary}){
         imageLibrary.unloadAllImages();
     }
 
+    const newChart = (name) => {
+        projectDispatch('new-chart', {name, dontSelect: false});
+    }
+
 
     let message=[];
     if (progressStatus){
@@ -65,24 +70,20 @@ export default function ImagesTab({project, projectDispatch, imageLibrary}){
         const image = project.images.get(project.selectedImage)?.img;
         if (image){
             data.drawFunctions.drawImage(image, 0, 0);
+            data.drawFunctions.setFillStyle('black');
+            data.drawFunctions.fillRect(true, 0, -15, image.width, 15)
         }
-        data.drawFunctions.setLineWidth(true, 10);
-        data.drawFunctions.setStrokeStyle('blue', 'square');
-        data.drawFunctions.beginPath();
-        data.drawFunctions.moveTo(0, 0);
-        data.drawFunctions.lineTo(image.width, image.height);
-        data.drawFunctions.stroke();
-
-        data.drawFunctions.beginPath();
-        data.drawFunctions.setLineWidth(false, 10);
-        data.drawFunctions.setStrokeStyle('red', 'butt');
-        data.drawFunctions.moveTo(image.width, 0);
-        data.drawFunctions.lineTo(0, image.height);
-        data.drawFunctions.stroke();
-
-        data.drawFunctions.setFillStyle('blue');
-        data.drawFunctions.setFont(true, 10, 'segoe');
-        data.drawFunctions.fillText('Hi', 10, 10);
+        // data.drawFunctions.setLineWidth(true, 10);
+        // data.drawFunctions.setStrokeStyle('blue', 'square');
+        // data.drawFunctions.beginPath();
+        // data.drawFunctions.moveTo(0, 0);
+        // data.drawFunctions.lineTo(image.width, image.height);
+        // data.drawFunctions.stroke();
+;
+        data.drawFunctions.setFillStyle('white');
+        data.drawFunctions.setTextBaseline('middle');
+        data.drawFunctions.setFont(true, 14, 'segoe');
+        data.drawFunctions.fillText(project.selectedImage, 1, -7);
     }, [project.images, project.selectedImage]);
 
     return (
@@ -95,7 +96,7 @@ export default function ImagesTab({project, projectDispatch, imageLibrary}){
                 <div style={{flexGrow: 1}}>
                     <Danvas style={{width:'100%', height:'100%'}} onNeedsRedraw={redraw} drawRef={drawRef}/>
                 </div>
-                <ImagesPane {...{images: project.images, selectedImage: project.selectedImage, addImages, removeImage, setSelectedImage, clearImages}}/>
+                <ChartsPane charts={project.charts} newChart={newChart} selectedChart={project.selectedChart} selectedImage={project.selectedImage}/>
             </div>
         </>
     );

@@ -1,7 +1,6 @@
-import React, {useCallback, useEffect, useRef, useState} from "react";
+import React, {useCallback, useEffect, useRef} from "react";
 
 import useSize from "../lib/useSize";
-import { teal } from "@mui/material/colors";
 
 const zoomFactor=1.1;
 
@@ -43,6 +42,13 @@ function buildScaledDrawFunctions(context, view){
         },
         setFillStyle: (style) => {
             context.fillStyle = style;
+        },
+        fillRect: (bScale, x, y, w, h) => {
+            if (bScale){
+                context.fillRect(x*scale+view.origin.x*scale, y*scale+view.origin.y*scale, w*scale, h*scale);
+            }else{
+                context.fillRect(x*scale+view.origin.x*scale, y*scale+view.origin.y*scale, w*window.devicePixelRatio, h*window.devicePixelRatio);
+            }
         },
         setFont: (bScale, size, font) => {
             if (bScale){

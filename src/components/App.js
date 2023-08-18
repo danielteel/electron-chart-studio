@@ -47,7 +47,7 @@ function projectReducer(state, action){
             }
             return state;
         }
-                
+
         case 'add-image':{
             let name=payload.name;
             if (state.images.has(payload.name)){
@@ -63,6 +63,25 @@ function projectReducer(state, action){
             return {...state, images: newImages};
         }
 
+        case 'new-chart':{
+            const {name, dontSelect} = payload;
+            const imageToAddTo = state.images.get(state.selectedImage);
+            if (!imageToAddTo){
+                console.error('projectReducer: tried to add a chart not associated with an image');
+                return state;
+            }
+
+            if (state.charts.has(name)){
+                console.error('projectReducer: tried to add a chart with same name as another chart');
+                return state;
+            }
+
+            const newCharts = new Map(state.charts);
+            newCharts.set(name, {image: state.selectedImage, bounds: {left: 0, top: 0, right: 0, bottom: 0}});
+            const newSelectedChart = dontSelect ? state.selectedChart : name;
+            return {...state, charts: newCharts, selectedChart: newSelectedChart};
+        }
+
         default:
             throw new Error('projectReducer: unknown action type ', action.type);
     }
@@ -70,7 +89,9 @@ function projectReducer(state, action){
 
 const initialProjectState = {
     images: new Map(),
-    selectedImage: null
+    charts: new Map(),
+    selectedImage: null,
+    selectedChart: null
 }
 
 
